@@ -472,13 +472,19 @@ function Gui:CreateTab(options)
 	Gui.corner(button, 8)
 	local indicator = Gui.create("Frame", { AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 3, 0.5, 0), Size = UDim2.fromOffset(2, 0), BackgroundColor3 = theme.accent, BackgroundTransparency = 1, BorderSizePixel = 0, Parent = button })
 	Gui.round(indicator)
-	local label = Gui.text({ Text = options.Name, TextColor3 = theme.subtext, Position = UDim2.fromOffset(14, 0), Size = UDim2.new(1, -22, 1, 0), Parent = button })
+	local icon
+	local labelX = options.Icon and 40 or 14
+	if options.Icon then
+		local image = type(options.Icon) == "number" and ("rbxassetid://" .. options.Icon) or options.Icon
+		icon = Gui.create("ImageLabel", { Image = image, ImageColor3 = theme.subtext, BackgroundTransparency = 1, AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 14, 0.5, 0), Size = UDim2.fromOffset(18, 18), ScaleType = Enum.ScaleType.Fit, Parent = button })
+	end
+	local label = Gui.text({ Text = options.Name, TextColor3 = theme.subtext, Position = UDim2.fromOffset(labelX, 0), Size = UDim2.new(1, -labelX - 8, 1, 0), Parent = button })
 	local page = Gui.create("CanvasGroup", { Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, GroupTransparency = 1, Visible = false, Parent = Gui.pages })
 	local container = Gui.create("ScrollingFrame", { Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, BorderSizePixel = 0, CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y, ScrollBarThickness = 2, ScrollBarImageColor3 = theme.accent, ScrollBarImageTransparency = 0.35, Parent = page })
 	Gui.list(container, 10)
 	Gui.padding(container, 2, 8, 10, 2)
 
-	local tab = setmetatable({ name = options.Name, button = button, indicator = indicator, label = label, page = page, container = container, sections = {}, token = 0 }, Gui.Tab)
+	local tab = setmetatable({ name = options.Name, button = button, indicator = indicator, label = label, icon = icon, labelX = labelX, page = page, container = container, sections = {}, token = 0 }, Gui.Tab)
 	button.MouseButton1Click:Connect(function()
 		Gui.selectTab(tab)
 	end)
@@ -486,12 +492,14 @@ function Gui:CreateTab(options)
 		if tab.selected then return end
 		Gui.tween(button, { BackgroundTransparency = 0.6 })
 		Gui.tween(label, { TextColor3 = theme.text })
-		Gui.glide(label, { Position = UDim2.fromOffset(17, 0) }, Gui.motion.base)
+		if icon then Gui.tween(icon, { ImageColor3 = theme.text }) end
+		Gui.glide(label, { Position = UDim2.fromOffset(labelX + 3, 0) }, Gui.motion.base)
 	end, function()
 		if tab.selected then return end
 		Gui.tween(button, { BackgroundTransparency = 1 })
 		Gui.tween(label, { TextColor3 = theme.subtext })
-		Gui.glide(label, { Position = UDim2.fromOffset(14, 0) }, Gui.motion.base)
+		if icon then Gui.tween(icon, { ImageColor3 = theme.subtext }) end
+		Gui.glide(label, { Position = UDim2.fromOffset(labelX, 0) }, Gui.motion.base)
 	end)
 	table.insert(Gui.tabs, tab)
 	if #Gui.tabs == 1 then
@@ -525,7 +533,8 @@ function Gui.Tab:setSelected(selected)
 		Gui.glide(self.page, { Position = UDim2.new() })
 		Gui.tween(self.page, { GroupTransparency = 0 }, Gui.motion.base)
 		Gui.tween(self.button, { BackgroundTransparency = 0.35 }, Gui.motion.base)
-		Gui.tween(self.label, { TextColor3 = theme.text, Position = UDim2.fromOffset(14, 0) }, Gui.motion.base)
+		Gui.tween(self.label, { TextColor3 = theme.text, Position = UDim2.fromOffset(self.labelX, 0) }, Gui.motion.base)
+		if self.icon then Gui.tween(self.icon, { ImageColor3 = theme.text }) end
 		Gui.pop(self.indicator, { Size = UDim2.fromOffset(2, 16) }, Gui.motion.panel)
 		Gui.tween(self.indicator, { BackgroundTransparency = 0 })
 		return
@@ -539,6 +548,7 @@ function Gui.Tab:setSelected(selected)
 	end)
 	Gui.tween(self.button, { BackgroundTransparency = 1 })
 	Gui.tween(self.label, { TextColor3 = theme.subtext })
+	if self.icon then Gui.tween(self.icon, { ImageColor3 = theme.subtext }) end
 	Gui.tween(self.indicator, { Size = UDim2.fromOffset(2, 0), BackgroundTransparency = 1 })
 end
 
