@@ -733,6 +733,7 @@ function Gui.Section:AddDropdown(id, options)
 	local box = Gui.button({ Size = UDim2.fromScale(1, 1), BackgroundColor3 = theme.control, BackgroundTransparency = 0.25, Parent = holder })
 	Gui.corner(box, 7)
 	local icon = Gui.create("ImageLabel", { AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 5, 0.5, 0), Size = UDim2.fromOffset(20, 20), BackgroundTransparency = 1, ScaleType = Enum.ScaleType.Fit, Visible = false, Parent = box })
+	local valuePreview = Gui.create("Frame", { AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 4, 0.5, 0), Size = UDim2.fromOffset(22, 22), BackgroundTransparency = 1, Visible = false, Parent = box })
 	local valueLabel = Gui.text({ TextSize = 11, TextColor3 = theme.subtext, Size = UDim2.new(1, -32, 1, 0), Parent = box })
 	local arrow = Gui.text({ Text = "›", TextSize = 17, TextColor3 = theme.subtext, TextXAlignment = Enum.TextXAlignment.Center, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -8, 0.5, 0), Size = UDim2.fromOffset(16, 16), Rotation = 90, Parent = box })
 
@@ -751,7 +752,7 @@ function Gui.Section:AddDropdown(id, options)
 	local list = Gui.create("ScrollingFrame", { Size = UDim2.new(1, 0, 1, filterable and -31 or 0), BackgroundTransparency = 1, BorderSizePixel = 0, CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y, ScrollBarThickness = 2, ScrollBarImageColor3 = theme.accent, LayoutOrder = 2, Parent = panel })
 	Gui.list(list, 3)
 
-	local control = { row = row, multi = options.Multi == true, values = options.Values or {}, icons = options.Icons or {}, selected = {}, options = {}, open = false, dirty = true, filter = "" }
+	local control = { row = row, multi = options.Multi == true, values = options.Values or {}, icons = options.Icons or {}, selected = {}, options = {}, open = false, dirty = true, filter = "", optionHeight = options.Preview and 38 or 30 }
 	if control.multi then
 		Gui.applyMulti(control.selected, options.Default or {})
 	else
@@ -781,13 +782,25 @@ function Gui.Section:AddDropdown(id, options)
 		return #chosen <= 2 and table.concat(chosen, ", ") or #chosen .. " selected"
 	end
 
+	-- Preview = function(value, holder): draws a live sample of the option into holder
+	function control:drawPreview(holder, value)
+		holder:ClearAllChildren()
+		pcall(options.Preview, value, holder)
+	end
+
 	function control:render()
 		local image = not self.multi and self.value and self.icons[self.value]
 		icon.Visible = image ~= nil and image ~= false
 		if icon.Visible then
 			icon.Image = Gui.thumbnail(image)
 		end
-		valueLabel.Position = UDim2.fromOffset(icon.Visible and 30 or 10, 0)
+		local previewing = options.Preview ~= nil and not self.multi and self.value ~= nil
+		if previewing and self.previewValue ~= self.value then
+			self.previewValue = self.value
+			self:drawPreview(valuePreview, self.value)
+		end
+		valuePreview.Visible = previewing
+		valueLabel.Position = UDim2.fromOffset((icon.Visible or previewing) and 30 or 10, 0)
 		valueLabel.Text = self:summary()
 		for value, option in self.options do
 			local selected = self:has(value)
@@ -835,13 +848,19 @@ function Gui.Section:AddDropdown(id, options)
 	end
 
 	function control:addOption(value, index)
-		local button = Gui.button({ Size = UDim2.new(1, -2, 0, 30), BackgroundColor3 = theme.surfaceHover, BackgroundTransparency = 1, LayoutOrder = index, Parent = list })
+		local button = Gui.button({ Size = UDim2.new(1, -2, 0, self.optionHeight), BackgroundColor3 = theme.surfaceHover, BackgroundTransparency = 1, LayoutOrder = index, Parent = list })
 		Gui.corner(button, 6)
 		local indicator = Gui.create("Frame", { AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 7, 0.5, 0), Size = UDim2.fromOffset(2, 13), BackgroundColor3 = theme.accent, BackgroundTransparency = 1, BorderSizePixel = 0, Parent = button })
 		Gui.round(indicator)
 		local textX = 17
 		local image = self.icons[value]
-		if image then
+		if options.Preview then
+			local holder = Gui.create("Frame", { AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 14, 0.5, 0), Size = UDim2.fromOffset(30, 30), BackgroundColor3 = theme.background, BackgroundTransparency = 0.3, BorderSizePixel = 0, ClipsDescendants = true, Parent = button })
+			Gui.corner(holder, 6)
+			local canvas = Gui.create("Frame", { Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, Parent = holder })
+			self:drawPreview(canvas, value)
+			textX = 52
+		elseif image then
 			Gui.create("ImageLabel", { Image = Gui.thumbnail(image), AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 14, 0.5, 0), Size = UDim2.fromOffset(24, 24), BackgroundTransparency = 1, ScaleType = Enum.ScaleType.Fit, Parent = button })
 			textX = 44
 		end
@@ -885,7 +904,7 @@ function Gui.Section:AddDropdown(id, options)
 			end
 		end
 		shown = math.clamp(shown, 1, 6)
-		return shown * 30 + (shown - 1) * 3 + 12 + (filterable and 31 or 0)
+		return shown * self.optionHeight + (shown - 1) * 3 + 12 + (filterable and 31 or 0)
 	end
 
 	function control:setOpen(open)
@@ -937,6 +956,12 @@ function Gui.Section:AddDropdown(id, options)
 			Gui.tween(panel, { Size = UDim2.new(1, 0, 0, self:panelHeight()) })
 		end
 		self:render()
+	end
+
+	-- Redraw previews (e.g. after the host changed the color they use)
+	function control:RefreshPreviews()
+		self.previewValue = nil
+		self:SetValues(self.values)
 	end
 
 	if filterBox then

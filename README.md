@@ -9,5 +9,5 @@ local section = window:CreateTab({ Name = "Main" }):AddSection("Options")
 section:AddToggle("Example", { Text = "Toggle", Description = "What it does.", Default = false, Callback = print })
 ```
 
-Controls: `AddToggle`, `AddSlider`, `AddDropdown` (`Multi`, `Icons`, `Searchable`), `AddInput`, `AddLabel`, `AddInfoList`.
+Controls: `AddToggle`, `AddSlider`, `AddDropdown` (`Multi`, `Icons`, `Searchable`, `Preview = function(value, holder)`), `AddInput`, `AddLabel`, `AddInfoList`.
 Window: `Notify`, `Destroy`. RightShift or the logo button toggles the window.
