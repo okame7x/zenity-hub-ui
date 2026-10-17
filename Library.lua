@@ -61,17 +61,18 @@ end
 
 
 Gui.theme = {
-	accent = Color3.fromRGB(139, 92, 246),
+	-- Distinct layers (window < sidebar < card < control) and bright secondary text, so everything reads at a glance
+	accent = Color3.fromRGB(150, 108, 255),
 	accentText = Color3.fromRGB(255, 255, 255),
-	background = Color3.fromRGB(9, 10, 14),
-	sidebar = Color3.fromRGB(12, 14, 19),
-	surface = Color3.fromRGB(18, 20, 27),
-	surfaceHover = Color3.fromRGB(27, 30, 39),
-	control = Color3.fromRGB(35, 39, 50),
+	background = Color3.fromRGB(14, 15, 20),
+	sidebar = Color3.fromRGB(19, 21, 28),
+	surface = Color3.fromRGB(29, 32, 42),
+	surfaceHover = Color3.fromRGB(40, 44, 57),
+	control = Color3.fromRGB(56, 61, 78),
 	border = Color3.fromRGB(255, 255, 255),
-	text = Color3.fromRGB(245, 247, 251),
-	subtext = Color3.fromRGB(170, 177, 192),
-	muted = Color3.fromRGB(122, 129, 145),
+	text = Color3.fromRGB(248, 249, 252),
+	subtext = Color3.fromRGB(200, 205, 216),
+	muted = Color3.fromRGB(155, 162, 178),
 }
 Gui.motion = { tap = 0.08, fast = 0.12, base = 0.18, panel = 0.24, slow = 0.34 }
 Gui.logo = "rbxassetid://123727588877909"
@@ -122,7 +123,7 @@ end
 function Gui.text(properties)
 	properties.BackgroundTransparency = 1
 	properties.Font = properties.Font or Enum.Font.GothamMedium
-	properties.TextSize = properties.TextSize or 13
+	properties.TextSize = properties.TextSize or 14
 	properties.TextColor3 = properties.TextColor3 or Gui.theme.text
 	properties.TextXAlignment = properties.TextXAlignment or Enum.TextXAlignment.Left
 	properties.TextTruncate = properties.TextTruncate or Enum.TextTruncate.AtEnd
@@ -210,19 +211,10 @@ end
 
 -- Window
 
+-- One faint, still glow in a corner: the grid and the drifting glows sat behind the text and made it harder to read
 function Gui.buildBackground()
 	local effects = Gui.create("Frame", { Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, ZIndex = 0, Parent = Gui.main })
-	for x = 36, Gui.size.X, 36 do
-		Gui.create("Frame", { Position = UDim2.fromOffset(x, 0), Size = UDim2.new(0, 1, 1, 0), BackgroundColor3 = Gui.theme.border, BackgroundTransparency = 0.965, BorderSizePixel = 0, Parent = effects })
-	end
-	for y = 36, Gui.size.Y, 36 do
-		Gui.create("Frame", { Position = UDim2.fromOffset(0, y), Size = UDim2.new(1, 0, 0, 1), BackgroundColor3 = Gui.theme.border, BackgroundTransparency = 0.965, BorderSizePixel = 0, Parent = effects })
-	end
-	local glowA = Gui.glow(effects, UDim2.fromScale(0.08, 0.1), 440, 0.06)
-	local glowB = Gui.glow(effects, UDim2.fromScale(0.94, 0.94), 380, 0.045)
-	-- The glows drift and breathe slowly behind the content
-	Gui.loop(glowA, { Position = UDim2.fromScale(0.35, 0.4), Size = UDim2.fromOffset(520, 520) }, 9)
-	Gui.loop(glowB, { Position = UDim2.fromScale(0.65, 0.6), Size = UDim2.fromOffset(300, 300) }, 11)
+	Gui.glow(effects, UDim2.fromScale(0.05, 0.05), 360, 0.05)
 end
 
 function Gui.draggable(handle)
@@ -246,10 +238,10 @@ end
 
 function Gui.buildSearch(sidebar)
 	local theme = Gui.theme
-	local frame = Gui.create("Frame", { Position = UDim2.fromOffset(10, 72), Size = UDim2.fromOffset(Gui.sidebarWidth - 20, 30), BackgroundColor3 = theme.surface, BackgroundTransparency = 0.25, BorderSizePixel = 0, Parent = sidebar })
+	local frame = Gui.create("Frame", { Position = UDim2.fromOffset(10, 72), Size = UDim2.fromOffset(Gui.sidebarWidth - 20, 30), BackgroundColor3 = theme.surface, BackgroundTransparency = 0, BorderSizePixel = 0, Parent = sidebar })
 	Gui.corner(frame, 8)
 	local stroke = Gui.stroke(frame, theme.border, 0.92)
-	local box = Gui.create("TextBox", { Position = UDim2.fromOffset(10, 0), Size = UDim2.new(1, -20, 1, 0), BackgroundTransparency = 1, ClearTextOnFocus = false, Text = "", PlaceholderText = "Search...", PlaceholderColor3 = theme.muted, TextColor3 = theme.text, TextSize = 11, Font = Enum.Font.GothamMedium, TextXAlignment = Enum.TextXAlignment.Left, Parent = frame })
+	local box = Gui.create("TextBox", { Position = UDim2.fromOffset(10, 0), Size = UDim2.new(1, -20, 1, 0), BackgroundTransparency = 1, ClearTextOnFocus = false, Text = "", PlaceholderText = "Search...", PlaceholderColor3 = theme.muted, TextColor3 = theme.text, TextSize = 13, Font = Enum.Font.GothamMedium, TextXAlignment = Enum.TextXAlignment.Left, Parent = frame })
 	box.Focused:Connect(function()
 		Gui.tween(stroke, { Color = theme.accent, Transparency = 0.45 })
 	end)
@@ -268,13 +260,13 @@ end
 function Gui.buildSidebar(options)
 	local theme = Gui.theme
 	local width = Gui.sidebarWidth
-	local sidebar = Gui.create("Frame", { Size = UDim2.new(0, width, 1, 0), BackgroundColor3 = theme.sidebar, BackgroundTransparency = 0.15, BorderSizePixel = 0, ZIndex = 2, Parent = Gui.main })
+	local sidebar = Gui.create("Frame", { Size = UDim2.new(0, width, 1, 0), BackgroundColor3 = theme.sidebar, BackgroundTransparency = 0, BorderSizePixel = 0, ZIndex = 2, Parent = Gui.main })
 	Gui.create("Frame", { AnchorPoint = Vector2.new(1, 0), Position = UDim2.fromScale(1, 0), Size = UDim2.new(0, 1, 1, 0), BackgroundColor3 = theme.border, BackgroundTransparency = 0.92, BorderSizePixel = 0, Parent = sidebar })
 
 	local brand = Gui.create("Frame", { Position = UDim2.fromOffset(14, 16), Size = UDim2.fromOffset(width - 28, 44), BackgroundTransparency = 1, Parent = sidebar })
 	Gui.create("ImageLabel", { Image = Gui.logo, Size = UDim2.fromOffset(34, 34), BackgroundTransparency = 1, ScaleType = Enum.ScaleType.Fit, Parent = brand })
 	Gui.text({ Text = options.Title, Font = Enum.Font.GothamBold, TextSize = 15, Position = UDim2.fromOffset(42, 0), Size = UDim2.new(1, -42, 0, 18), Parent = brand })
-	Gui.text({ Text = options.Subtitle, Font = Enum.Font.Gotham, TextSize = 11, TextColor3 = theme.subtext, Position = UDim2.fromOffset(42, 19), Size = UDim2.new(1, -42, 0, 14), Parent = brand })
+	Gui.text({ Text = options.Subtitle, Font = Enum.Font.Gotham, TextSize = 13, TextColor3 = theme.subtext, Position = UDim2.fromOffset(42, 19), Size = UDim2.new(1, -42, 0, 14), Parent = brand })
 	Gui.draggable(brand)
 
 	Gui.buildSearch(sidebar)
@@ -300,7 +292,7 @@ function Gui.buildContent()
 	local left = Gui.sidebarWidth + 12
 	local content = Gui.create("Frame", { Position = UDim2.fromOffset(left, 12), Size = UDim2.new(1, -(left + 12), 1, -24), BackgroundTransparency = 1, ZIndex = 2, Parent = Gui.main })
 
-	local topbar = Gui.create("Frame", { Size = UDim2.new(1, 0, 0, 46), BackgroundColor3 = theme.surface, BackgroundTransparency = 0.4, BorderSizePixel = 0, Parent = content })
+	local topbar = Gui.create("Frame", { Size = UDim2.new(1, 0, 0, 46), BackgroundColor3 = theme.surface, BackgroundTransparency = 0, BorderSizePixel = 0, Parent = content })
 	Gui.corner(topbar, 10)
 	Gui.stroke(topbar, theme.border, 0.94)
 	local mark = Gui.create("Frame", { AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.fromScale(0, 0.5), Size = UDim2.fromOffset(2, 18), BackgroundColor3 = theme.accent, BorderSizePixel = 0, Parent = topbar })
@@ -445,7 +437,7 @@ function Gui:Notify(options)
 	local head = Gui.create("Frame", { Size = UDim2.new(1, 0, 0, 18), BackgroundTransparency = 1, LayoutOrder = 1, Parent = card })
 	Gui.create("ImageLabel", { Image = Gui.logo, Size = UDim2.fromOffset(18, 18), BackgroundTransparency = 1, ScaleType = Enum.ScaleType.Fit, Parent = head })
 	Gui.text({ Text = tostring(options.Title or "Notification"), TextSize = 12, Position = UDim2.fromOffset(26, 0), Size = UDim2.new(1, -26, 1, 0), Parent = head })
-	Gui.text({ Text = tostring(options.Text or ""), TextSize = 11, Font = Enum.Font.Gotham, TextColor3 = theme.subtext, TextWrapped = true, TextTruncate = Enum.TextTruncate.None, Size = UDim2.fromScale(1, 0), AutomaticSize = Enum.AutomaticSize.Y, LayoutOrder = 2, Parent = card })
+	Gui.text({ Text = tostring(options.Text or ""), TextSize = 13, Font = Enum.Font.Gotham, TextColor3 = theme.subtext, TextWrapped = true, TextTruncate = Enum.TextTruncate.None, Size = UDim2.fromScale(1, 0), AutomaticSize = Enum.AutomaticSize.Y, LayoutOrder = 2, Parent = card })
 	local timer = Gui.create("Frame", { Size = UDim2.new(1, 0, 0, 2), BackgroundColor3 = theme.control, BackgroundTransparency = 0.4, BorderSizePixel = 0, LayoutOrder = 3, Parent = card })
 	Gui.round(timer)
 	local fill = Gui.create("Frame", { Size = UDim2.fromScale(1, 1), BackgroundColor3 = theme.accent, BorderSizePixel = 0, Parent = timer })
@@ -573,7 +565,7 @@ function Gui.Tab:AddSection(title)
 	local header = Gui.create("Frame", { Size = UDim2.new(1, 0, 0, 16), BackgroundTransparency = 1, LayoutOrder = 1, Parent = root })
 	local mark = Gui.create("Frame", { AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 2, 0.5, 0), Size = UDim2.fromOffset(2, 11), BackgroundColor3 = theme.accent, BorderSizePixel = 0, Parent = header })
 	Gui.round(mark)
-	Gui.text({ Text = title:upper(), TextSize = 11, TextColor3 = theme.muted, Position = UDim2.fromOffset(12, 0), Size = UDim2.new(1, -12, 1, 0), Parent = header })
+	Gui.text({ Text = title:upper(), Font = Enum.Font.GothamBold, TextSize = 13, TextColor3 = theme.subtext, Position = UDim2.fromOffset(12, 0), Size = UDim2.new(1, -12, 1, 0), Parent = header })
 	local container = Gui.create("Frame", { Size = UDim2.fromScale(1, 0), AutomaticSize = Enum.AutomaticSize.Y, BackgroundTransparency = 1, LayoutOrder = 2, Parent = root })
 	Gui.list(container, 7)
 	Gui.padding(container, 2)
@@ -582,17 +574,18 @@ function Gui.Tab:AddSection(title)
 	return section
 end
 
--- Card row: title and description on the left, control on the right, extras stack below
+-- Card row: title on the left, control on the right, extras stack below. Descriptions are not shown: the titles
+-- say enough and the extra lines made every tab long and hard to scan
 function Gui.Section:card(options, controlSize, clickable)
 	local theme = Gui.theme
-	local row = Gui.create(clickable and "TextButton" or "Frame", { Size = UDim2.fromScale(1, 0), AutomaticSize = Enum.AutomaticSize.Y, BackgroundColor3 = theme.surface, BackgroundTransparency = 0.15, BorderSizePixel = 0, ClipsDescendants = true, LayoutOrder = Gui.nextOrder(), Parent = self.container })
+	local row = Gui.create(clickable and "TextButton" or "Frame", { Size = UDim2.fromScale(1, 0), AutomaticSize = Enum.AutomaticSize.Y, BackgroundColor3 = theme.surface, BackgroundTransparency = 0, BorderSizePixel = 0, ClipsDescendants = true, LayoutOrder = Gui.nextOrder(), Parent = self.container })
 	if clickable then
 		row.AutoButtonColor = false
 		row.Text = ""
 	end
 	Gui.corner(row, 10)
-	local stroke = Gui.stroke(row)
-	Gui.padding(row, 12, 15)
+	local stroke = Gui.stroke(row, theme.border, 0.86)
+	Gui.padding(row, 11, 14)
 	Gui.list(row, 9)
 
 	local head = Gui.create("Frame", { Size = UDim2.fromScale(1, 0), AutomaticSize = Enum.AutomaticSize.Y, BackgroundTransparency = 1, LayoutOrder = 1, Parent = row })
@@ -601,23 +594,20 @@ function Gui.Section:card(options, controlSize, clickable)
 	local controlWidth = controlSize and controlSize.X or 0
 	local info = Gui.create("Frame", { Size = UDim2.new(1, controlWidth > 0 and -(controlWidth + 14) or 0, 0, 0), AutomaticSize = Enum.AutomaticSize.Y, BackgroundTransparency = 1, LayoutOrder = 1, Parent = head })
 	Gui.list(info, 3)
-	Gui.text({ Text = options.Text or "", TextWrapped = true, TextTruncate = Enum.TextTruncate.None, Size = UDim2.fromScale(1, 0), AutomaticSize = Enum.AutomaticSize.Y, LayoutOrder = 1, Parent = info })
-	if options.Description then
-		Gui.text({ Text = options.Description, TextSize = 11, Font = Enum.Font.Gotham, TextColor3 = theme.subtext, TextWrapped = true, TextTruncate = Enum.TextTruncate.None, Size = UDim2.fromScale(1, 0), AutomaticSize = Enum.AutomaticSize.Y, LayoutOrder = 2, Parent = info })
-	end
+	Gui.text({ Text = options.Text or "", Font = Enum.Font.GothamBold, TextWrapped = true, TextTruncate = Enum.TextTruncate.None, Size = UDim2.fromScale(1, 0), AutomaticSize = Enum.AutomaticSize.Y, LayoutOrder = 1, Parent = info })
 	local control
 	if controlWidth > 0 then
 		control = Gui.create("Frame", { Size = UDim2.fromOffset(controlSize.X, controlSize.Y), BackgroundTransparency = 1, LayoutOrder = 2, Parent = head })
 	end
 
 	Gui.hover(row, function()
-		Gui.tween(row, { BackgroundTransparency = 0.02 })
-		Gui.tween(stroke, { Transparency = 0.75 })
+		Gui.tween(row, { BackgroundColor3 = theme.surfaceHover })
+		Gui.tween(stroke, { Transparency = 0.7 })
 	end, function()
-		Gui.tween(row, { BackgroundTransparency = 0.15 })
-		Gui.tween(stroke, { Transparency = 0.9 })
+		Gui.tween(row, { BackgroundColor3 = theme.surface })
+		Gui.tween(stroke, { Transparency = 0.86 })
 	end)
-	table.insert(self.elements, { row = row, text = ((options.Text or "") .. " " .. (options.Description or "")):lower() })
+	table.insert(self.elements, { row = row, text = (options.Text or ""):lower() })
 	return row, control
 end
 
@@ -744,7 +734,7 @@ function Gui.Section:AddDropdown(id, options)
 	Gui.corner(box, 7)
 	local icon = Gui.create("ImageLabel", { AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 5, 0.5, 0), Size = UDim2.fromOffset(20, 20), BackgroundTransparency = 1, ScaleType = Enum.ScaleType.Fit, Visible = false, Parent = box })
 	local valuePreview = Gui.create("Frame", { AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 4, 0.5, 0), Size = UDim2.fromOffset(22, 22), BackgroundTransparency = 1, Visible = false, Parent = box })
-	local valueLabel = Gui.text({ TextSize = 11, TextColor3 = theme.subtext, Size = UDim2.new(1, -32, 1, 0), Parent = box })
+	local valueLabel = Gui.text({ TextSize = 13, TextColor3 = theme.subtext, Size = UDim2.new(1, -32, 1, 0), Parent = box })
 	local arrow = Gui.text({ Text = "›", TextSize = 17, TextColor3 = theme.subtext, TextXAlignment = Enum.TextXAlignment.Center, AnchorPoint = Vector2.new(1, 0.5), Position = UDim2.new(1, -8, 0.5, 0), Size = UDim2.fromOffset(16, 16), Rotation = 90, Parent = box })
 
 	local panel = Gui.create("Frame", { Size = UDim2.fromScale(1, 0), BackgroundColor3 = theme.background, BackgroundTransparency = 0.15, BorderSizePixel = 0, ClipsDescendants = true, Visible = false, LayoutOrder = 2, Parent = row })
@@ -757,7 +747,7 @@ function Gui.Section:AddDropdown(id, options)
 	if filterable then
 		local filterFrame = Gui.create("Frame", { Size = UDim2.new(1, 0, 0, 26), BackgroundColor3 = theme.surface, BackgroundTransparency = 0.2, BorderSizePixel = 0, LayoutOrder = 1, Parent = panel })
 		Gui.corner(filterFrame, 6)
-		filterBox = Gui.create("TextBox", { Position = UDim2.fromOffset(9, 0), Size = UDim2.new(1, -18, 1, 0), BackgroundTransparency = 1, ClearTextOnFocus = false, Text = "", PlaceholderText = "Filter...", PlaceholderColor3 = theme.muted, TextColor3 = theme.text, TextSize = 11, Font = Enum.Font.GothamMedium, TextXAlignment = Enum.TextXAlignment.Left, Parent = filterFrame })
+		filterBox = Gui.create("TextBox", { Position = UDim2.fromOffset(9, 0), Size = UDim2.new(1, -18, 1, 0), BackgroundTransparency = 1, ClearTextOnFocus = false, Text = "", PlaceholderText = "Filter...", PlaceholderColor3 = theme.muted, TextColor3 = theme.text, TextSize = 13, Font = Enum.Font.GothamMedium, TextXAlignment = Enum.TextXAlignment.Left, Parent = filterFrame })
 	end
 	local list = Gui.create("ScrollingFrame", { Size = UDim2.new(1, 0, 1, filterable and -31 or 0), BackgroundTransparency = 1, BorderSizePixel = 0, CanvasSize = UDim2.new(), AutomaticCanvasSize = Enum.AutomaticSize.Y, ScrollBarThickness = 2, ScrollBarImageColor3 = theme.accent, LayoutOrder = 2, Parent = panel })
 	Gui.list(list, 3)
@@ -874,7 +864,7 @@ function Gui.Section:AddDropdown(id, options)
 			Gui.create("ImageLabel", { Image = Gui.thumbnail(image), AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 14, 0.5, 0), Size = UDim2.fromOffset(24, 24), BackgroundTransparency = 1, ScaleType = Enum.ScaleType.Fit, Parent = button })
 			textX = 44
 		end
-		local label = Gui.text({ Text = value, TextSize = 11, TextColor3 = theme.subtext, Position = UDim2.fromOffset(textX, 0), Size = UDim2.new(1, -(textX + 8), 1, 0), Parent = button })
+		local label = Gui.text({ Text = value, TextSize = 13, TextColor3 = theme.subtext, Position = UDim2.fromOffset(textX, 0), Size = UDim2.new(1, -(textX + 8), 1, 0), Parent = button })
 		Gui.hover(button, function()
 			Gui.tween(button, { BackgroundTransparency = 0.45 }, 0.1)
 		end, function()
@@ -1012,7 +1002,7 @@ function Gui.Section:AddInput(_, options)
 	local field = Gui.create("Frame", { Size = UDim2.fromScale(1, 1), BackgroundColor3 = theme.control, BackgroundTransparency = 0.25, BorderSizePixel = 0, Parent = holder })
 	Gui.corner(field, 7)
 	local stroke = Gui.stroke(field, theme.border, 0.92)
-	local box = Gui.create("TextBox", { Position = UDim2.fromOffset(10, 0), Size = UDim2.new(1, -20, 1, 0), BackgroundTransparency = 1, ClearTextOnFocus = false, Text = "", PlaceholderText = options.Placeholder or "", PlaceholderColor3 = theme.muted, TextColor3 = theme.text, TextSize = 11, Font = Enum.Font.GothamMedium, TextXAlignment = Enum.TextXAlignment.Left, Parent = field })
+	local box = Gui.create("TextBox", { Position = UDim2.fromOffset(10, 0), Size = UDim2.new(1, -20, 1, 0), BackgroundTransparency = 1, ClearTextOnFocus = false, Text = "", PlaceholderText = options.Placeholder or "", PlaceholderColor3 = theme.muted, TextColor3 = theme.text, TextSize = 13, Font = Enum.Font.GothamMedium, TextXAlignment = Enum.TextXAlignment.Left, Parent = field })
 	box.Focused:Connect(function()
 		Gui.tween(stroke, { Color = theme.accent, Transparency = 0.45 })
 	end)
@@ -1041,7 +1031,7 @@ function Gui.Section:AddInfoList()
 	local theme = Gui.theme
 	local row = self:card({ Text = "" }, nil, false)
 	row:FindFirstChildWhichIsA("Frame"):Destroy()
-	local empty = Gui.text({ Text = "Nothing yet", TextSize = 11, Font = Enum.Font.Gotham, TextColor3 = theme.muted, Size = UDim2.new(1, 0, 0, 16), LayoutOrder = 0, Parent = row })
+	local empty = Gui.text({ Text = "Nothing yet", TextSize = 13, Font = Enum.Font.Gotham, TextColor3 = theme.muted, Size = UDim2.new(1, 0, 0, 16), LayoutOrder = 0, Parent = row })
 	local control = { rows = {} }
 	function control:SetRows(rows)
 		empty.Visible = #rows == 0
